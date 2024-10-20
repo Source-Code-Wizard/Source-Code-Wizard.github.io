@@ -1,5 +1,5 @@
 ---
-title: Exploring Data Transfer in Microservices using gRPC, WebSockets, and REST
+title: Exploring Efficient data Transfer in Microservices using gRPC, WebSockets, and REST
 date: 2024-10-17 12:00:00 -500
 categories: [ web-development ]
 tags: [ server,spring-boot-3,java ]
