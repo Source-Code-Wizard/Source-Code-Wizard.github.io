@@ -25,8 +25,8 @@ Aggregation is useful when you want to model a *part-whole* relationship where t
 
 **Key Differences:**
 1. **Inheritance:** A *is-a* relationship, where the child class inherits from the parent class.
-2. **Composition:** A *has-a* relationship, where the containing object contains the contained object as a member variable.
-3. **Aggregation:** A special case of composition, where the *part* can exist independently of the *whole*.
+2. **Composition:** A *owns-a* relationship, where the containing object contains the contained object as a member variable.
+3. **Aggregation:** A special case of composition ( *has-a* relationship ) , where the *part* can exist independently of the *whole*.
 
 The choice between these three approaches depends on the specific requirements of your system and the relationship between the classes involved. Generally, composition and aggregation are preferred over inheritance due to their flexibility and loose coupling.
 
@@ -320,3 +320,182 @@ In object-oriented design, choosing between inheritance and composition is a cru
 - Polymorphism provides real benefits
 
 Remember, the key is not to avoid inheritance completely, but to use it when it truly models the problem domain and relationships correctly.
+
+### Aggregation Example in Java
+
+In an aggregation relationship, the "part" object can exist independently of the "whole" object. This means that the lifecycle of the "part" object is not dependent on the lifecycle of the "whole" object.
+
+Let's revisit the University-Department-Student example from before, and demonstrate this independence:
+
+```java
+// Professor class represents a faculty member who can teach multiple courses
+public class Professor {
+  private String name;
+  private String department;
+  private String employeeId;
+
+  public Professor(String name, String department, String employeeId) {
+    this.name = name;
+    this.department = department;
+    this.employeeId = employeeId;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  // Other getters and setters
+}
+
+// Course class demonstrates aggregation with Professor
+public class Course {
+  private String courseCode;
+  private String courseName;
+  private Professor instructor;  // Aggregation: Course has-a Professor
+  private int maxStudents;
+
+  public Course(String courseCode, String courseName, int maxStudents) {
+    this.courseCode = courseCode;
+    this.courseName = courseName;
+    this.maxStudents = maxStudents;
+  }
+
+  // Professor can be assigned or changed later
+  public void assignInstructor(Professor professor) {
+    this.instructor = professor;
+  }
+
+  // Professor can exist without the course
+  public void removeInstructor() {
+    this.instructor = null;
+  }
+
+  public String getCourseInfo() {
+    return String.format("Course: %s - %s, Instructor: %s",
+      courseCode,
+      courseName,
+      instructor != null ? instructor.getName() : "TBA");
+  }
+}
+
+// Department class to demonstrate usage
+public class Department {
+  private String name;
+  private List<Course> courses;
+  private List<Professor> faculty;
+
+  public Department(String name) {
+    this.name = name;
+    this.courses = new ArrayList<>();
+    this.faculty = new ArrayList<>();
+  }
+
+  public void addProfessor(Professor professor) {
+    faculty.add(professor);
+  }
+
+  public void addCourse(Course course) {
+    courses.add(course);
+  }
+
+  // Method to demonstrate the flexibility of aggregation
+  public void reassignCourse(Course course, Professor newInstructor) {
+    if (courses.contains(course) && faculty.contains(newInstructor)) {
+      course.assignInstructor(newInstructor);
+      System.out.println("Course reassigned successfully.");
+    }
+  }
+}
+
+// Main class to demonstrate why aggregation is better here
+public class UniversitySystem {
+  public static void main(String[] args) {
+    // Create a department
+    Department computerScience = new Department("Computer Science");
+
+    // Create professors (they can exist independently)
+    Professor prof1 = new Professor("Dr. Smith", "Computer Science", "CS001");
+    Professor prof2 = new Professor("Dr. Johnson", "Computer Science", "CS002");
+
+    // Add professors to department
+    computerScience.addProfessor(prof1);
+    computerScience.addProfessor(prof2);
+
+    // Create courses
+    Course dataStructures = new Course("CS201", "Data Structures", 30);
+    Course algorithms = new Course("CS301", "Algorithms", 25);
+
+    // Initially assign professors
+    dataStructures.assignInstructor(prof1);
+    algorithms.assignInstructor(prof2);
+
+    // Add courses to department
+    computerScience.addCourse(dataStructures);
+    computerScience.addCourse(algorithms);
+
+    // Demonstrate flexibility of aggregation
+    System.out.println("Initial assignment:");
+    System.out.println(dataStructures.getCourseInfo());
+    System.out.println(algorithms.getCourseInfo());
+
+    // Prof1 goes on sabbatical - reassign their course to prof2
+    System.out.println("\nAfter reassignment (Prof1 goes on sabbatical):");
+    dataStructures.assignInstructor(prof2);
+    System.out.println(dataStructures.getCourseInfo());
+
+    // Prof2 now teaches both courses
+    // Note: Prof1 still exists and remains in the faculty!
+  }
+}
+```
+### Comparing Aggregation vs Composition in Java: University System Example
+
+#### Aggregation Benefits
+This example demonstrates why aggregation is better than composition in this scenario:
+
+#### 1. Independent Lifecycles
+- Professors exist independently of courses (they can teach 0, 1, or many courses)
+- If a course is deleted, the professor shouldn't be deleted
+- If a professor goes on sabbatical, their courses can be reassigned without affecting the professor's existence
+
+#### 2. Flexibility in Relationships
+- Professors can be reassigned to different courses
+- Courses can change instructors without creating new professor objects
+- One professor can teach multiple courses
+- Courses can exist temporarily without an assigned professor
+
+#### 3. Resource Efficiency
+- Multiple courses can reference the same professor object
+- No need to duplicate professor information across courses
+
+### Composition Limitations
+If this were implemented using composition instead:
+- Each course would need to "own" its professor
+- Reassigning professors would require creating new professor objects
+- A professor teaching multiple courses would exist as multiple copies
+- Deleting a course would delete its professor object
+
+### Implementation Issues with Composition
+
+#### 1. Data Duplication
+Notice how we need separate professor instances for the same professor teaching multiple courses. This leads to data inconsistency and maintenance problems.
+
+#### 2. Rigid Structure
+The composition version forces us to:
+- Have a professor at course creation time
+- Create entirely new course objects just to change professors
+- Maintain duplicate professor data
+
+#### 3. Resource Issues
+- More memory usage from duplicate professor objects
+- No single source of truth for professor information
+- Garbage collection of professor data when courses are deleted
+
+#### 4. Identity Problems
+- Two instances of the same professor aren't actually the same object
+- Can't easily track which courses a professor is teaching
+- Equality checks fail even for the same professor
+
+### Conclusion
+This comparison clearly shows why aggregation is superior for this scenario - it maintains proper relationships while avoiding data duplication and allowing for flexible assignment changes.
+
