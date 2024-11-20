@@ -160,9 +160,6 @@ The `Car` class also has a `shutdown()` method that ensures the proper cleanup o
 
 This demonstrates that in a composition relationship, the child objects' lifecycle is tightly coupled to the parent object. The parent object controls the creation, initialization, and destruction of the child objects.
 
-Compared to the previous example, this showcases a more complete and accurate representation of the composition design pattern in Java.
-
-
 ### Inheritance vs Composition
 
 
